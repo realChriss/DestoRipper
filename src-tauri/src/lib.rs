@@ -4,12 +4,13 @@ use rusty_ytdl::{
     VideoOptions,
     VideoQuality
 };
-use dirs_next::{self, download_dir};
+use dirs_next::download_dir;
+use std::path::PathBuf;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
 #[tauri::command]
-async fn submit(url: String, format: String, path: String) {
+async fn submit(url: String, format: String) {
     let format_type: VideoSearchOptions;
     
     if format == "mp4" {
@@ -25,14 +26,12 @@ async fn submit(url: String, format: String, path: String) {
     };
     
     let video = Video::new_with_options(url, video_options).unwrap();
-    let video_info = video.get_info().await.unwrap();
- 
-    // Bruder ab hier weiß ich ong nicht weiter wie man an den user download order kommt
-    // mit diesem shit ass rust shit nga. so schlecht gemacht digga fuck den shit 
-    // es ist 2h nachts 
-    let download_path = download_dir();
+    
+    let download_path = download_dir().expect("Failed to get download directory");
+    let mut file_path = PathBuf::from(download_path);
+    file_path.push("downloaded_video.mp4"); // Change the file name and extension as needed
 
-    video.download(download_path).await.unwrap();
+    video.download(&file_path).await.unwrap();
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

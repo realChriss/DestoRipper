@@ -1,26 +1,35 @@
 import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
+import React from "react";
+import { Toaster, toast } from "react-hot-toast";
 
 function App() {
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
   const [displayedUrl, setDisplayedUrl] = useState("");
-  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const typingTimeoutRef = useRef<number | undefined>();
   const isTypingRef = useRef(false);
 
   useEffect(() => {
-    if (url.length > 30 && !isTypingRef.current) {
-      const interval = setInterval(() => {
+    let intervalId: number | undefined;
+
+    if (url.length > 15 && !isTypingRef.current) {
+      intervalId = window.setInterval(() => {
         setDisplayedUrl((prev) => {
-          const spacedUrl = " " + prev + " ";
-          return spacedUrl.slice(1) + spacedUrl[0];
+          const spacedUrl = ` ${prev} `;
+          return spacedUrl.substring(1) + spacedUrl[0];
         });
-      }, 100); 
-      return () => clearInterval(interval);
+      }, 50);
     } else {
       setDisplayedUrl(url);
     }
+
+    return () => {
+      if (intervalId !== undefined) {
+        clearInterval(intervalId);
+      }
+    };
   }, [url, isTypingRef.current]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,13 +43,27 @@ function App() {
 
     isTypingRef.current = true;
 
-    typingTimeoutRef.current = setTimeout(() => {
+    typingTimeoutRef.current = window.setTimeout(() => {
       isTypingRef.current = false;
-    }, 200); 
+    }, 3000); 
   };
 
   async function convert() {
+    toast.loading("Download is starting...", {
+      style: {
+        borderRadius: '8px',
+        background: '#333',
+        color: '#fff',
+      },
+    });
     await invoke("submit", { url, format: "mp3" });
+    toast.success("Download completed!"), {
+      style: {
+        borderRadius: '8px',
+        background: '#333',
+        color: '#fff',
+      },
+    };
   }
 
   function validateUrl() {
@@ -49,7 +72,15 @@ function App() {
       !url.includes("tiktok.com") &&
       !url.includes("instagram.com")
     ) {
-      setError("This platform is not supported");
+      const errorMessage = "This is not a valid URL \n or a Supported Platform";
+      setError(errorMessage);
+      toast.error(errorMessage, {
+        style: {
+          borderRadius: '8px',
+          background: '#333',
+          color: '#fff',
+        },
+      });
       return false;
     }
     setError(""); 
@@ -69,19 +100,19 @@ function App() {
             convert();
           }
         }}
-      >
+            >
         <div className="input-container">
           <input
             id="url-input"
             value={displayedUrl}
             onChange={handleInputChange}
-            placeholder={error || "Paste the Video URL..."}
+            placeholder={"Paste the Video URL..."}
             style={error ? { borderColor: "red", color: "red" } : {}}
-          />
+/>
         </div>
         <button type="submit">Convert</button>
       </form>
-
+      <Toaster />
       <form>
         <h2 className="PlatformSupportH2">Platforms we Support:</h2>
         <div className="platformsIMG">
