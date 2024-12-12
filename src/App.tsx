@@ -1,14 +1,12 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 
 function App() {
-  const [url, setUrl] = useState("");
-  const [message, setMessage] = useState("");
+    const [url, setUrl] = useState("");
 
   async function convert() {
-    setMessage(`Konvertiere: ${url}`);
+    await invoke("submit", { url, format: "mp3" })
   }
 
   return (
@@ -29,7 +27,6 @@ function App() {
         />
         <button type="submit">Konvertieren</button>
       </form>
-      <p>{message}</p>
     </main>
   );
 }
