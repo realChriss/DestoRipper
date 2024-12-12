@@ -5,6 +5,7 @@
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafb);
 }
+
 :root {
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
   font-size: 16px;
@@ -69,9 +70,8 @@ p {
 
 input,
 button {
-  border-radius: 8px;
   border: 1px solid transparent;
-  padding: 0.6em 1.2em;
+  padding: 0.6em 1.7em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
@@ -79,23 +79,28 @@ button {
   background-color: #ffffff;
   transition: border-color 0.25s;
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+  outline: none;
 }
 
 button {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+  padding: 0.6em 1.2em !important;
   cursor: pointer;
+}
+
+input {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
 }
 
 button:hover {
   border-color: #396cd8;
 }
+
 button:active {
   border-color: #396cd8;
   background-color: #e8e8e8;
-}
-
-input,
-button {
-  outline: none;
 }
 
 #greet-input {
@@ -117,63 +122,68 @@ button {
     color: #ffffff;
     background-color: #0f0f0f98;
   }
+
   button:active {
     background-color: #0f0f0f69;
   }
 }
 
 .PlatformSupportH2 {
-color: white;
-padding:1px;
-margin:20px;
+  color: white;
+  padding: 1px;
+  margin: 20px;
 }
 
-    .platformsIMG {
-    flex-direction: row;
-    display: flex;
-    justify-content:center;
-    margin-left:30px;
-    margin-right: 30px;
-  }
-  
-  .ytIMG {
-    width: 70px;
-    height: 70px;
-    margin: 20px;
-    fill:red;
-    background-color: white;
-    border-radius: 12px;
-    transition: all 0.5s ease;
-  }
-  .ytIMG:hover {
-    width: 80px;
-    height: 80px;
-    transition: all 0.5s ease;
-  }
-  
-  .ttIMG {
-    width: 70px;
-    height: 70px;
-    margin: 20px;
-    border-radius: 20px;
-    transition: all 0.5s ease;
-  }
-  .ttIMG:hover {
-    width: 80px;
-    height: 80px;
-    transition: all 0.5s ease;
-  }
-  
-  .igIMG {
-    width: 70px;
-    height: 70px;
-    margin: 20px;
-    background-color: white;
-    border-radius: 25px;
-    transition: all 0.5s ease;
-  }
-  .igIMG:hover {
-    width: 80px;
-    height: 80px;
-    transition: all 0.5s ease;
-  }
+.platformsIMG {
+  flex-direction: row;
+  display: flex;
+  justify-content: center;
+  margin-left: 30px;
+  margin-right: 30px;
+}
+
+.ytIMG {
+  width: 70px;
+  height: 70px;
+  margin: 20px;
+  fill: red;
+  background-color: white;
+  border-radius: 12px;
+  transition: all 0.5s ease;
+}
+
+.ytIMG:hover {
+  width: 80px;
+  height: 80px;
+  transition: all 0.5s ease;
+}
+
+.ttIMG {
+  width: 70px;
+  height: 70px;
+  margin: 20px;
+  border-radius: 20px;
+  transition: all 0.5s ease;
+}
+
+.ttIMG:hover {
+  width: 80px;
+  height: 80px;
+  transition: all 0.5s ease;
+}
+
+.igIMG {
+  width: 70px;
+  height: 70px;
+  margin: 20px;
+  background-color: white;
+  border-radius: 25px;
+  transition: all 0.5s ease;
+}
+
+.igIMG:hover {
+  width: 80px;
+  height: 80px;
+  transition: all 0.5s ease;
+}
+
