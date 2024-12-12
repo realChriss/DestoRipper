@@ -56,7 +56,7 @@ function App() {
         color: '#fff',
       },
     });
-    await invoke("submit", { url, format: "mp3" });
+    await invoke("submit", { url, format: "mp4" });
     toast.success("Download completed!"), {
       style: {
         borderRadius: '8px',
