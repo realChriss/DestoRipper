@@ -95,6 +95,7 @@ function App() {
   }
 
   function validateUrl() {
+    return true
     const youtubeRegex = /^https:\/\/www\.youtube\.com\/watch\?v=[\w-]{11}$/;
     const tiktokRegex = /^https:\/\/(www\.)?tiktok\.com\/[\@\w.-]+\/video\/\d+$/;
     const instagramRegex = /^https:\/\/(www\.)?instagram\.com\/p\/[\w-]+\/$/;

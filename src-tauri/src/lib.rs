@@ -1,11 +1,10 @@
 use dirs_next::download_dir;
-use std::process::Stdio;
+use std::{env::args, process::Stdio};
 use tokio::process::Command;
 use tokio::fs::File;
 use std::path::{Path, PathBuf};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-
-const YTDLP_PATH: &str = "../yt_dlp/yt-dlp.pyz";
+use tokio::io::{AsyncReadExt, AsyncWriteExt, BufWriter};
+use std::fs;
 
 #[tauri::command]
 async fn submit(url: String, format: String) -> bool {
@@ -22,52 +21,104 @@ async fn submit_impl(url: String, format: String) -> Result<(), Box<dyn std::err
     let download_path = download_dir().unwrap_or_else(|| "./".into());
     let download_path = download_path.join(format!("downloaded_video.{}", format));
 
-    let mut child = Command::new("python")
+    let video_path = "video.tmp";
+    let audio_path = "audio.tmp";
+
+    // Separate Streams für Video und Audio
+    let mut video_stream = Vec::new();
+    let mut audio_stream = Vec::new();
+
+
+    // Video-Stream extrahieren
+    let mut video_child = Command::new("python")
         .arg("src\\yt-dlp.pyz")
         .arg("--ffmpeg-location")
         .arg("src\\ffmpeg.exe")
+        .arg("-f")
+        .arg("bestvideo[vcodec^=avc1]")
+        .arg("--no-part")
         .arg("-o")
         .arg("-")
         .arg(&url)
         .stdout(Stdio::piped())
-        .spawn()
-        .expect("yt-dlp konnte nicht gestartet werden");
+        .spawn()?;
 
-    if let Some(mut stdout) = child.stdout.take() {
-        // Speicherstream erstellen
-        let mut memory_stream = Vec::new();
+    // Audio-Stream extrahieren
+    let mut audio_child = Command::new("python")
+        .arg("src\\yt-dlp.pyz")
+        .arg("--ffmpeg-location")
+        .arg("src\\ffmpeg.exe")
+        .arg("-f")
+        .arg("bestaudio")
+        .arg("--no-part")
+        .arg("-o")
+        .arg("-")
+        .arg(&url)
+        .stdout(Stdio::piped())
+        .spawn()?;
+
+    // Video-Stream in Speicher laden
+    if let Some(mut video_stdout) = video_child.stdout.take() {
         let mut buffer = [0u8; 8192];
-
-        // Lesen der stdout in den Speicherstream
         loop {
-            let bytes_read = stdout.read(&mut buffer).await?;
+            let bytes_read = video_stdout.read(&mut buffer).await?;
             if bytes_read == 0 {
-                break; // Keine Daten mehr
+                break;
             }
-            memory_stream.extend_from_slice(&buffer[..bytes_read]);
+            video_stream.extend_from_slice(&buffer[..bytes_read]);
         }
-
-        println!("Video erfolgreich in den Speicher geladen ({} Bytes)", memory_stream.len());
-
-        // Optional: Speichern in einer Datei
-        let mut file = File::create(download_path).await?;
-        file.write_all(&memory_stream).await?;
-    } else {
-        eprintln!("Fehler: Kein Zugriff auf die stdout von yt-dlp.");
     }
 
+    // Audio-Stream in Speicher laden
+    if let Some(mut audio_stdout) = audio_child.stdout.take() {
+        let mut buffer = [0u8; 8192];
+        loop {
+            let bytes_read = audio_stdout.read(&mut buffer).await?;
+            if bytes_read == 0 {
+                break;
+            }
+            audio_stream.extend_from_slice(&buffer[..bytes_read]);
+        }
+    }
+
+    // Warten auf Beendigung der Child-Prozesse
+    video_child.wait().await?;
+    audio_child.wait().await?;
+
+    println!("Video-Stream: {} Bytes", video_stream.len());
+    println!("Audio-Stream: {} Bytes", audio_stream.len());
+
+    fs::write(&video_path, &video_stream)?;
+    fs::write(&audio_path, &audio_stream)?;
+
+    println!("Running FFmpeg..");
+    // FFmpeg-Prozess zum Zusammenführen
+    let mut ffmpeg_child = Command::new("src\\ffmpeg.exe")
+        .arg("-i")
+        .arg(video_path)  // Video-Input
+        .arg("-i")
+        .arg(audio_path)  // Audio-Input
+        .arg("-c:v")
+        .arg("libx264")
+        .arg("-c:a")
+        .arg("aac")
+        .arg("-map")
+        .arg("0:v")
+        .arg("-map")
+        .arg("1:a")
+        .arg(download_path.to_str().unwrap())
+        .stdin(Stdio::piped())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()?;
+    
+    // FFmpeg-Prozess beenden
+    ffmpeg_child.wait().await?;
+
+    fs::remove_file(video_path)?;
+    fs::remove_file(audio_path)?;
+
     Ok(())
-}
-
-fn get_yt_dlp_path() -> PathBuf {
-    let current_dir = std::env::current_dir().expect("Fehler beim Abrufen des aktuellen Verzeichnisses");
-
-    let yt_dlp_path = current_dir
-        .parent() // Ein Verzeichnis zurück
-        .expect("Kein übergeordnetes Verzeichnis vorhanden")
-        .join("yt_dlp/yt-dlp.pyz");
-
-    yt_dlp_path
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
