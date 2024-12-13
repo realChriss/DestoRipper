@@ -5,11 +5,11 @@ use rusty_ytdl::{
     VideoQuality
 };
 use dirs_next::download_dir;
-
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+use std::fs::File;
+use std::io::Write;
 
 #[tauri::command]
-async fn submit(url: String, format: String) {
+async fn submit(url: String, format: String) -> bool {
     let format_type: VideoSearchOptions;
     
     if format == "mp4" {
@@ -29,7 +29,16 @@ async fn submit(url: String, format: String) {
     let download_path = download_dir().unwrap_or("./".into());
     let download_path = download_path.join("downloaded_video.".to_string() + format.as_str());
 
-    video.download(download_path).await.unwrap();
+    let stream = video.stream().await.unwrap();
+
+    let mut file = File::create(&download_path).unwrap();
+
+    while let Some(chunk) = stream.chunk().await.unwrap() {
+        let _ = file.write_all(&chunk);
+        println!("{:#?}", chunk);
+    }
+
+    return true;
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

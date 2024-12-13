@@ -70,6 +70,8 @@ function App() {
     if (
       !url.includes("youtube.com") &&
       !url.includes("tiktok.com") &&
+      !url.includes("reddit.com") &&
+      !url.includes("x.com") &&
       !url.includes("instagram.com")
     ) {
       const errorMessage = "This is not a valid URL \n or a Supported Platform";
