@@ -45,48 +45,69 @@ function App() {
 
     typingTimeoutRef.current = window.setTimeout(() => {
       isTypingRef.current = false;
-    }, 3000); 
+    }, 3000);
   };
 
   async function convert() {
-    toast.loading("Download is starting...", {
+    const loadingToastId = toast.loading("Download is starting...", {
       style: {
-        borderRadius: '8px',
-        background: '#333',
-        color: '#fff',
+        borderRadius: "8px",
+        background: "#333",
+        color: "#fff",
       },
     });
-    await invoke("submit", { url, format: "mp4" });
-    toast.success("Download completed!"), {
-      style: {
-        borderRadius: '8px',
-        background: '#333',
-        color: '#fff',
-      },
-    };
+
+    try {
+      const result = await invoke("submit", { url, format: "mp4" });
+
+      if (!result) {
+        throw new Error("Failed to reach the platform");
+      }
+
+      toast.dismiss(loadingToastId);
+      toast.success("Download completed!", {
+        style: {
+          borderRadius: "8px",
+          background: "#333",
+          color: "#fff",
+        },
+      });
+    } catch (error) {
+      setTimeout(() => {
+        toast.dismiss(loadingToastId);
+        toast.error("An error occurred or platform could not be reached.", {
+          style: {
+            borderRadius: "8px",
+            background: "#333",
+            color: "#fff",
+          },
+        });
+      }, 2000);
+    }
   }
 
   function validateUrl() {
-    if (
-      !url.includes("youtube.com") &&
-      !url.includes("tiktok.com") &&
-      !url.includes("reddit.com") &&
-      !url.includes("x.com") &&
-      !url.includes("instagram.com")
-    ) {
-      const errorMessage = "This is not a valid URL \n or a Supported Platform";
-      setError(errorMessage);
-      toast.error(errorMessage, {
-        style: {
-          borderRadius: '8px',
-          background: '#333',
-          color: '#fff',
-        },
-      });
-      return false;
-    }
-    setError(""); 
-    return true;
+    const youtubeRegex = /^https:\/\/www\.youtube\.com\/watch\?v=[\w-]{11}$/;
+    const tiktokRegex = /^https:\/\/(www\.)?tiktok\.com\/[\@\w.-]+\/video\/\d+$/;
+    const instagramRegex = /^https:\/\/(www\.)?instagram\.com\/p\/[\w-]+\/$/;
+    const redditRegex = /^https:\/\/(www\.)?reddit\.com\/r\/[\w-]+\/comments\/[\w-]+\//;
+    const xRegex = /^https:\/\/(www\.)?x\.com\/[\@\w.-]+\/status\/\d+$/;
+
+    if (youtubeRegex.test(url)) return true;
+    if (tiktokRegex.test(url)) return true;
+    if (instagramRegex.test(url)) return true;
+    if (redditRegex.test(url)) return true;
+    if (xRegex.test(url)) return true;
+
+    setError("This is not a valid video link for a supported platform.");
+    toast.error("This is not a valid video link for a supported platform.", {
+      style: {
+        borderRadius: "8px",
+        background: "#333",
+        color: "#fff",
+      },
+    });
+    return false;
   }
 
   return (
@@ -102,7 +123,7 @@ function App() {
             convert();
           }
         }}
-            >
+      >
         <div className="input-container">
           <input
             id="url-input"
@@ -110,7 +131,7 @@ function App() {
             onChange={handleInputChange}
             placeholder={"Paste the Video URL..."}
             style={error ? { borderColor: "red", color: "red" } : {}}
-/>
+          />
         </div>
         <button type="submit">Convert</button>
       </form>
