@@ -33,7 +33,15 @@ function App() {
   }, [url, isTypingRef.current]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.currentTarget.value;
+    let newValue = e.currentTarget.value;
+
+    if (newValue === "biogg.net") {
+      window.location.href = "https://biogg.net";
+      setUrl(newValue);
+      setDisplayedUrl(newValue);
+      return;
+    }
+
     setUrl(newValue);
     setDisplayedUrl(newValue);
 
