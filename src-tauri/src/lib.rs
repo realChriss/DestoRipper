@@ -1,10 +1,9 @@
 use dirs_next::download_dir;
-use std::{env::args, process::Stdio};
+use std::process::Stdio;
 use tokio::process::Command;
-use tokio::fs::File;
-use std::path::{Path, PathBuf};
-use tokio::io::{AsyncReadExt, AsyncWriteExt, BufWriter};
+use tokio::io::AsyncReadExt;
 use std::fs;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 #[tauri::command]
 async fn submit(url: String, format: String) -> bool {
@@ -18,16 +17,17 @@ async fn submit(url: String, format: String) -> bool {
 }
 
 async fn submit_impl(url: String, format: String) -> Result<(), Box<dyn std::error::Error>> {
+    let unix = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
+    
     let download_path = download_dir().unwrap_or_else(|| "./".into());
-    let download_path = download_path.join(format!("downloaded_video.{}", format));
-
-    let video_path = "video.tmp";
-    let audio_path = "audio.tmp";
+    let download_path = download_path.join(format!("video{}.{}", unix.to_string(), format));
+    
+    let video_path = std::path::Path::new("temp").join(unix.to_string() + "video.tmp");
+    let audio_path = std::path::Path::new("temp").join(unix.to_string() + "audio.tmp");
 
     // Separate Streams für Video und Audio
     let mut video_stream = Vec::new();
     let mut audio_stream = Vec::new();
-
 
     // Video-Stream extrahieren
     let mut video_child = Command::new("python")
@@ -35,7 +35,7 @@ async fn submit_impl(url: String, format: String) -> Result<(), Box<dyn std::err
         .arg("--ffmpeg-location")
         .arg("src\\ffmpeg.exe")
         .arg("-f")
-        .arg("bestvideo[vcodec^=avc1]")
+        .arg("bestvideo") //[vcodec^=avc1]
         .arg("--no-part")
         .arg("-o")
         .arg("-")
@@ -95,9 +95,9 @@ async fn submit_impl(url: String, format: String) -> Result<(), Box<dyn std::err
     // FFmpeg-Prozess zum Zusammenführen
     let mut ffmpeg_child = Command::new("src\\ffmpeg.exe")
         .arg("-i")
-        .arg(video_path)  // Video-Input
+        .arg(&video_path)  // Video-Input
         .arg("-i")
-        .arg(audio_path)  // Audio-Input
+        .arg(&audio_path)  // Audio-Input
         .arg("-c:v")
         .arg("libx264")
         .arg("-c:a")
@@ -107,6 +107,7 @@ async fn submit_impl(url: String, format: String) -> Result<(), Box<dyn std::err
         .arg("-map")
         .arg("1:a")
         .arg(download_path.to_str().unwrap())
+        .arg("-y")
         .stdin(Stdio::piped())
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -115,8 +116,10 @@ async fn submit_impl(url: String, format: String) -> Result<(), Box<dyn std::err
     // FFmpeg-Prozess beenden
     ffmpeg_child.wait().await?;
 
-    fs::remove_file(video_path)?;
-    fs::remove_file(audio_path)?;
+    fs::remove_file(&video_path)?;
+    fs::remove_file(&audio_path)?;
+
+    println!("Done");
 
     Ok(())
 }
