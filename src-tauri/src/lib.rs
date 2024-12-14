@@ -19,11 +19,11 @@ async fn submit(url: String, format: String) -> bool {
 async fn submit_impl(url: String, format: String) -> Result<(), Box<dyn std::error::Error>> {
     let unix = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
     
-    let download_path = download_dir().unwrap_or_else(|| "./".into());
-    let download_path = download_path.join(format!("video{}.{}", unix.to_string(), format));
+    let download_dir = download_dir().unwrap_or_else(|| "./".into());
+    let download_path = download_dir.join(format!("video{}.{}", unix.to_string(), format));
     
-    let video_path = std::path::Path::new("temp").join(unix.to_string() + "video.tmp");
-    let audio_path = std::path::Path::new("temp").join(unix.to_string() + "audio.tmp");
+    let video_path = download_dir.join(unix.to_string() + "video.tmp");
+    let audio_path = download_dir.join(unix.to_string() + "audio.tmp");
 
     // Separate Streams für Video und Audio
     let mut video_stream = Vec::new();
@@ -31,9 +31,9 @@ async fn submit_impl(url: String, format: String) -> Result<(), Box<dyn std::err
 
     // Video-Stream extrahieren
     let mut video_child = Command::new("python")
-        .arg("src\\yt-dlp.pyz")
+        .arg("bin\\yt-dlp.pyz")
         .arg("--ffmpeg-location")
-        .arg("src\\ffmpeg.exe")
+        .arg("bin\\ffmpeg.exe")
         .arg("-f")
         .arg("bestvideo") //[vcodec^=avc1]
         .arg("--no-part")
@@ -41,13 +41,14 @@ async fn submit_impl(url: String, format: String) -> Result<(), Box<dyn std::err
         .arg("-")
         .arg(&url)
         .stdout(Stdio::piped())
+        .creation_flags(0x08000000) // No Window
         .spawn()?;
 
     // Audio-Stream extrahieren
     let mut audio_child = Command::new("python")
-        .arg("src\\yt-dlp.pyz")
+        .arg("bin\\yt-dlp.pyz")
         .arg("--ffmpeg-location")
-        .arg("src\\ffmpeg.exe")
+        .arg("bin\\ffmpeg.exe")
         .arg("-f")
         .arg("bestaudio")
         .arg("--no-part")
@@ -55,6 +56,7 @@ async fn submit_impl(url: String, format: String) -> Result<(), Box<dyn std::err
         .arg("-")
         .arg(&url)
         .stdout(Stdio::piped())
+        .creation_flags(0x08000000)
         .spawn()?;
 
     // Video-Stream in Speicher laden
@@ -93,7 +95,7 @@ async fn submit_impl(url: String, format: String) -> Result<(), Box<dyn std::err
 
     println!("Running FFmpeg..");
     // FFmpeg-Prozess zum Zusammenführen
-    let mut ffmpeg_child = Command::new("src\\ffmpeg.exe")
+    let mut ffmpeg_child = Command::new("bin\\ffmpeg.exe")
         .arg("-i")
         .arg(&video_path)  // Video-Input
         .arg("-i")
@@ -111,6 +113,7 @@ async fn submit_impl(url: String, format: String) -> Result<(), Box<dyn std::err
         .stdin(Stdio::piped())
         .stdout(Stdio::null())
         .stderr(Stdio::null())
+        .creation_flags(0x08000000)
         .spawn()?;
     
     // FFmpeg-Prozess beenden
