@@ -1,8 +1,9 @@
 use dirs_next::download_dir;
+use std::path::PathBuf;
 use std::process::Stdio;
 use tokio::process::Command;
 use tokio::io::AsyncReadExt;
-use std::fs;
+use std::{env, fs};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 #[tauri::command]
@@ -19,6 +20,9 @@ async fn submit(url: String, format: String) -> bool {
 async fn submit_impl(url: String, format: String) -> Result<(), Box<dyn std::error::Error>> {
     let unix = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
     
+    let ytdlp_path = get_ytdlp_path();
+    let ffmpeg_path = get_ffmpeg_path();
+
     let download_dir = download_dir().unwrap_or_else(|| "./".into());
     let download_path = download_dir.join(format!("video{}.{}", unix.to_string(), format));
     
@@ -29,11 +33,13 @@ async fn submit_impl(url: String, format: String) -> Result<(), Box<dyn std::err
     let mut video_stream = Vec::new();
     let mut audio_stream = Vec::new();
 
+    println!("Start download..");
+
     // Video-Stream extrahieren
     let mut video_child = Command::new("python")
-        .arg("bin\\yt-dlp.pyz")
+        .arg(&ytdlp_path)
         .arg("--ffmpeg-location")
-        .arg("bin\\ffmpeg.exe")
+        .arg(&ffmpeg_path)
         .arg("-f")
         .arg("bestvideo") //[vcodec^=avc1]
         .arg("--no-part")
@@ -46,9 +52,9 @@ async fn submit_impl(url: String, format: String) -> Result<(), Box<dyn std::err
 
     // Audio-Stream extrahieren
     let mut audio_child = Command::new("python")
-        .arg("bin\\yt-dlp.pyz")
+        .arg(&ytdlp_path)
         .arg("--ffmpeg-location")
-        .arg("bin\\ffmpeg.exe")
+        .arg(&ffmpeg_path)
         .arg("-f")
         .arg("bestaudio")
         .arg("--no-part")
@@ -95,7 +101,7 @@ async fn submit_impl(url: String, format: String) -> Result<(), Box<dyn std::err
 
     println!("Running FFmpeg..");
     // FFmpeg-Prozess zum Zusammenführen
-    let mut ffmpeg_child = Command::new("bin\\ffmpeg.exe")
+    let mut ffmpeg_child = Command::new(&ffmpeg_path)
         .arg("-i")
         .arg(&video_path)  // Video-Input
         .arg("-i")
@@ -111,8 +117,6 @@ async fn submit_impl(url: String, format: String) -> Result<(), Box<dyn std::err
         .arg(download_path.to_str().unwrap())
         .arg("-y")
         .stdin(Stdio::piped())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
         .creation_flags(0x08000000)
         .spawn()?;
     
@@ -125,6 +129,14 @@ async fn submit_impl(url: String, format: String) -> Result<(), Box<dyn std::err
     println!("Done");
 
     Ok(())
+}
+
+fn get_ffmpeg_path() -> PathBuf {
+    return env::current_dir().unwrap().join("bin").join("ffmpeg.exe");
+}
+
+fn get_ytdlp_path() -> PathBuf {
+    return env::current_dir().unwrap().join("bin").join("yt-dlp.pyz");
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
