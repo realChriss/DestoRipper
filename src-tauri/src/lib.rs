@@ -8,9 +8,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::{Emitter, Window};
 
 #[tauri::command]
-async fn submit(url: String, format: String, window: tauri::Window) -> bool {
+async fn submit(url: String, format: String, toast_id: String, window: tauri::Window) -> bool {
     // Versuche die Hauptlogik auszuführen
-    if let Err(err) = submit_impl(url, format, window).await {
+    if let Err(err) = submit_impl(url, format, toast_id, window).await {
         eprintln!("Fehler beim Herunterladen: {}", err);
         false
     } else {
@@ -21,6 +21,7 @@ async fn submit(url: String, format: String, window: tauri::Window) -> bool {
 async fn submit_impl(
     url: String,
     format: String,
+    toast_id: String,
     window: Window, // Fenster für Events
 ) -> Result<(), Box<dyn std::error::Error>> {
     let unix = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
@@ -37,7 +38,7 @@ async fn submit_impl(
     let mut audio_stream = Vec::new();
 
     // Fortschritt "Download gestartet"
-    window.emit("progress", "downloading")?;
+    window.emit("progress", format!("{} {}", toast_id, "downloading"))?;
 
     // Video-Stream extrahieren
     let mut video_child = Command::new("python")
@@ -101,7 +102,7 @@ async fn submit_impl(
     fs::write(&video_path, &video_stream)?;
 
     println!("Running FFmpeg..");
-    window.emit("progress", "processing")?;
+    window.emit("progress", format!("{} {}", toast_id, "processing"))?;
     
     let mut ffmpeg_child = Command::new(&ffmpeg_path)
         .arg("-i")
@@ -134,7 +135,8 @@ async fn submit_impl(
 }
 
 fn get_ffmpeg_path() -> PathBuf {
-    return env::current_dir().unwrap().join("bin").join("ffmpeg.exe");
+    return env::current_dir().unwrap().join("bin")
+        .join(if cfg!(windows) { "ffmpeg.exe" } else { "ffmpeg" });
 }
 
 fn get_ytdlp_path() -> PathBuf {

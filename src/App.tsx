@@ -57,18 +57,10 @@ function App() {
         }, 3000);
     };
 
-    async function convert() {
-        const loadingToastId = toast.loading("Starting...", {
-            style: {
-                borderRadius: "8px",
-                background: "#333",
-                color: "#fff",
-            },
-        });
-
-        const update = (message: string) => {
+    listen("progress", (event) => {
+        const update = (toastId: string, message: string) => {
             toast.loading(message, {
-                id: loadingToastId, // Bestehendes Toast aktualisieren
+                id: toastId, // Bestehendes Toast aktualisieren
                 style: {
                     borderRadius: "8px",
                     background: "#333",
@@ -76,21 +68,34 @@ function App() {
                 },
             });
         }
-        
-        await listen("progress", (event) => {
-            const message = event.payload;
-            switch (message) {
-                case "downloading":
-                    update("Downloading...")
-                    break
-                case "processing":
-                    update("Processing...")
-                    break
-            }
-        })
+
+        const payload = event.payload as String
+        const [toastId, message] = payload.split(" ");
+        switch (message) {
+            case "downloading":
+                update(toastId, "Downloading...")
+                break
+            case "processing":
+                update(toastId, "Processing...")
+                break
+        }
+    })
+
+    async function convert() {
+        const loadingToastId = toast.loading("Starting...", {
+            style: {
+                borderRadius: "8px",
+                background: "#333",
+                color: "#fff",
+            },
+        }); 
     
         try {
-            const result = await invoke("submit", { url, format: "mp4" });
+            const result = await invoke("submit", { 
+                url, 
+                format: "mp4", 
+                toastId: loadingToastId 
+            });
 
             if (!result) {
                 throw new Error("Failed to reach the platform");
@@ -105,6 +110,7 @@ function App() {
                 },
             });
         } catch (error) {
+            console.error(error)
             toast.dismiss(loadingToastId);
             toast.error("An error occurred or platform could not be reached.", {
                 style: {
