@@ -5,6 +5,11 @@ import React from "react";
 import { Toaster, toast } from "react-hot-toast";
 import { listen } from "@tauri-apps/api/event";
 
+type VideoValidation = {
+    success: boolean, 
+    content: string
+}
+
 function App() {
     const [url, setUrl] = useState("");
     const [error, setError] = useState("");
@@ -17,13 +22,14 @@ function App() {
             return;
         }
 
+        setError("")
         setUrl(newValue);
     };
 
     listen("progress", (event) => {
         const update = (toastId: string, message: string) => {
             toast.loading(message, {
-                id: toastId, // Bestehendes Toast aktualisieren
+                id: toastId,
                 style: {
                     borderRadius: "8px",
                     background: "#333",
@@ -45,13 +51,32 @@ function App() {
     })
 
     async function convert() {
-        const loadingToastId = toast.loading("Starting...", {
+        const loadingToastId = toast.loading("Validating...", {
             style: {
                 borderRadius: "8px",
                 background: "#333",
                 color: "#fff",
             },
         }); 
+
+        const { 
+            success: infoSuccess, 
+            content: videoInfo
+        } = await getVideoInfo()
+
+        if (infoSuccess === false) {
+            setError(videoInfo);
+            toast.error(videoInfo, {
+                id: loadingToastId,
+                style: {
+                    borderRadius: "8px",
+                    background: "#333",
+                    color: "#fff",
+                },
+                duration: 5000
+            });
+            return
+        } 
     
         try {
             const result = await invoke("submit", { 
@@ -85,31 +110,20 @@ function App() {
         }
     }
 
+    async function getVideoInfo(): Promise<VideoValidation> {
+        const result: VideoValidation = await invoke("get_video_info", { url });
 
+        if (result.success === false) {
+            return {
+                success: false,
+                content: result.content
+            };
+        }
 
-    function validateUrl() {
-        return true
-        const youtubeRegex = /^https:\/\/www\.youtube\.com\/watch\?v=[\w-]{11}$/;
-        const tiktokRegex = /^https:\/\/(www\.)?tiktok\.com\/[\@\w.-]+\/video\/\d+$/;
-        const instagramRegex = /^https:\/\/(www\.)?instagram\.com\/p\/[\w-]+\/$/;
-        const redditRegex = /^https:\/\/(www\.)?reddit\.com\/r\/[\w-]+\/comments\/[\w-]+\//;
-        const xRegex = /^https:\/\/(www\.)?x\.com\/[\@\w.-]+\/status\/\d+$/;
-
-        if (youtubeRegex.test(url)) return true;
-        if (tiktokRegex.test(url)) return true;
-        if (instagramRegex.test(url)) return true;
-        if (redditRegex.test(url)) return true;
-        if (xRegex.test(url)) return true;
-
-        setError("This is not a valid video link for a supported platform.");
-            toast.error("This is not a valid video link for a supported platform.", {
-                style: {
-                    borderRadius: "8px",
-                    background: "#333",
-                    color: "#fff",
-                },
-            });
-        return false;
+        return {
+            success: true,
+            content: JSON.parse(result.content)
+        };
     }
 
     return (
@@ -124,9 +138,7 @@ function App() {
                     className="row"
                     onSubmit={(e) => {
                         e.preventDefault();
-                        if (validateUrl()) {
-                            convert();
-                        }
+                        convert();
                     }}
                 >
                     <div className="input-container">

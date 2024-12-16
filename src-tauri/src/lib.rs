@@ -1,20 +1,44 @@
 use dirs_next::download_dir;
-use std::path::PathBuf;
 use std::process::Stdio;
 use tokio::process::Command;
 use tokio::io::AsyncReadExt;
 use std::{env, fs};
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::{Emitter, Window};
+use serde_json::{json, Value};
+
+pub mod dlp;
+pub mod util;
+pub mod ffmpeg;
 
 #[tauri::command]
-async fn submit(url: String, format: String, toast_id: String, window: tauri::Window) -> bool {
-    // Versuche die Hauptlogik auszuführen
+async fn submit(url: String, format: String, toast_id: String, window: tauri::Window) -> Result<bool, String> {
     if let Err(err) = submit_impl(url, format, toast_id, window).await {
         eprintln!("Fehler beim Herunterladen: {}", err);
-        false
+        return Err(err.to_string());
     } else {
-        true
+        return Ok(true);
+    }
+
+}
+
+#[tauri::command]
+async fn get_video_info(url: String) -> Value {
+    match dlp::get_video_info(url).await {
+        Ok(result) => {
+            println!("Ausgabe:\n{}", result);
+            return json!({
+                "success": true, 
+                "content": result
+            });
+        },
+        Err(err) => {
+            eprintln!("Fehler:\n{}", err);
+            return json!({
+                "success": false, 
+                "content": err
+            });
+        }
     }
 }
 
@@ -25,8 +49,8 @@ async fn submit_impl(
     window: Window, // Fenster für Events
 ) -> Result<(), Box<dyn std::error::Error>> {
     let unix = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
-    let ytdlp_path = get_ytdlp_path();
-    let ffmpeg_path = get_ffmpeg_path();
+    let ytdlp_path = util::get_ytdlp_path();
+    let ffmpeg_path = util::get_ffmpeg_path();
 
     let download_dir = download_dir().unwrap_or_else(|| "./".into());
     let download_path = download_dir.join(format!("video{}.{}", unix.to_string(), format));
@@ -128,28 +152,19 @@ async fn submit_impl(
 
     ffmpeg_child.wait().await?;
 
-    fs::remove_file(&video_path)?;
-    fs::remove_file(&audio_path)?;
+    //fs::remove_file(&video_path)?;
+    //fs::remove_file(&audio_path)?;
 
     println!("Done");
     
     Ok(())
 }
 
-fn get_ffmpeg_path() -> PathBuf {
-    return env::current_dir().unwrap().join("bin")
-        .join(if cfg!(windows) { "ffmpeg.exe" } else { "ffmpeg" });
-}
-
-fn get_ytdlp_path() -> PathBuf {
-    return env::current_dir().unwrap().join("bin").join("yt-dlp.pyz");
-}
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![submit])
+        .invoke_handler(tauri::generate_handler![submit, get_video_info])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
