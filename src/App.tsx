@@ -77,8 +77,7 @@ function App() {
             });
         }
         
-        listen("progress", (event) => {
-
+        await listen("progress", (event) => {
             const message = event.payload;
             switch (message) {
                 case "downloading":

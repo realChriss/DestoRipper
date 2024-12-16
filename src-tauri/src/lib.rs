@@ -45,12 +45,13 @@ async fn submit_impl(
         .arg("--ffmpeg-location")
         .arg(&ffmpeg_path)
         .arg("-f")
-        .arg("bestvideo")
+        .arg("bv*")
         .arg("--no-part")
         .arg("-o")
         .arg("-")
         .arg(&url)
         .stdout(Stdio::piped())
+        //.creation_flags(0x08000000)
         .spawn()?;
 
     let mut audio_child = Command::new("python")
@@ -58,12 +59,13 @@ async fn submit_impl(
         .arg("--ffmpeg-location")
         .arg(&ffmpeg_path)
         .arg("-f")
-        .arg("bestaudio")
+        .arg("ba*")
         .arg("--no-part")
         .arg("-o")
         .arg("-")
         .arg(&url)
         .stdout(Stdio::piped())
+        //.creation_flags(0x08000000)
         .spawn()?;
 
     
@@ -88,21 +90,19 @@ async fn submit_impl(
             audio_stream.extend_from_slice(&buffer[..bytes_read]);
         }
     }
-
-    window.emit("progress", "processing")?;
-
+    
     video_child.wait().await?;
     audio_child.wait().await?;
-
+    
     println!("Video-Stream: {} Bytes", video_stream.len());
     println!("Audio-Stream: {} Bytes", audio_stream.len());
-
+    
     fs::write(&audio_path, &audio_stream)?;
     fs::write(&video_path, &video_stream)?;
 
     println!("Running FFmpeg..");
-
-    window.emit("progress", "Merging video and audio...")?;
+    window.emit("progress", "processing")?;
+    
     let mut ffmpeg_child = Command::new(&ffmpeg_path)
         .arg("-i")
         .arg(&video_path)
@@ -120,12 +120,15 @@ async fn submit_impl(
         .arg("0")
         .arg(download_path.to_str().unwrap())
         .arg("-y")
+        //.creation_flags(0x08000000)
         .spawn()?;
 
     ffmpeg_child.wait().await?;
 
     fs::remove_file(&video_path)?;
     fs::remove_file(&audio_path)?;
+
+    print!("Done");
     
     Ok(())
 }
