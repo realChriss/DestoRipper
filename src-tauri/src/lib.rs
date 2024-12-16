@@ -48,6 +48,7 @@ async fn submit_impl(
         .arg("-f")
         .arg("bv*")
         .arg("--no-part")
+        .arg("--no-playlist")
         .arg("-o")
         .arg("-")
         .arg(&url)
@@ -62,6 +63,7 @@ async fn submit_impl(
         .arg("-f")
         .arg("ba*")
         .arg("--no-part")
+        .arg("--no-playlist")
         .arg("-o")
         .arg("-")
         .arg(&url)
@@ -129,7 +131,7 @@ async fn submit_impl(
     fs::remove_file(&video_path)?;
     fs::remove_file(&audio_path)?;
 
-    print!("Done");
+    println!("Done");
     
     Ok(())
 }
