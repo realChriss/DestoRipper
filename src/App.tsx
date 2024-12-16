@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 import React from "react";
@@ -8,53 +8,16 @@ import { listen } from "@tauri-apps/api/event";
 function App() {
     const [url, setUrl] = useState("");
     const [error, setError] = useState("");
-    const [displayedUrl, setDisplayedUrl] = useState("");
-    const typingTimeoutRef = useRef<number | undefined>();
-    const isTypingRef = useRef(false);
-
-    useEffect(() => {
-        let intervalId: number | undefined;
-
-        if (url.length > 15 && !isTypingRef.current) {
-            intervalId = window.setInterval(() => {
-                setDisplayedUrl((prev) => {
-                    const spacedUrl = ` ${prev} `;
-                    return spacedUrl.substring(1) + spacedUrl[0];
-                });
-            }, 50);
-        } else {
-            setDisplayedUrl(url);
-        }
-
-        return () => {
-            if (intervalId !== undefined) {
-                clearInterval(intervalId);
-            }
-        };
-    }, [url, isTypingRef.current]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let newValue = e.currentTarget.value;
 
         if (newValue === "biogg.net") {
             window.location.href = "https://biogg.net";
-            setUrl(newValue);
-            setDisplayedUrl(newValue);
             return;
         }
 
         setUrl(newValue);
-        setDisplayedUrl(newValue);
-
-        if (typingTimeoutRef.current) {
-            clearTimeout(typingTimeoutRef.current);
-        }
-
-        isTypingRef.current = true;
-
-        typingTimeoutRef.current = window.setTimeout(() => {
-            isTypingRef.current = false;
-        }, 3000);
     };
 
     listen("progress", (event) => {
@@ -169,7 +132,6 @@ function App() {
                     <div className="input-container">
                         <input
                             id="url-input"
-                            value={displayedUrl}
                             onChange={handleInputChange}
                             placeholder={"Paste the Video URL..."}
                             style={error ? { borderColor: "red", color: "red" } : {}}
