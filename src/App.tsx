@@ -9,6 +9,9 @@ type VideoValidation = {
     success: boolean, 
     content: string
 }
+type StreamValidation = 
+  | { success: true; content: number[] }
+  | { success: false; content: string };
 
 function App() {
     const [url, setUrl] = useState("");
@@ -60,11 +63,11 @@ function App() {
         }); 
 
         const { 
-            success: infoSuccess, 
+            success: videoInfoSuccess, 
             content: videoInfo
-        } = await getVideoInfo()
+        } = await getVideoInfo(url)
 
-        if (infoSuccess === false) {
+        if (videoInfoSuccess === false) {
             setError(videoInfo);
             toast.error(videoInfo, {
                 id: loadingToastId,
@@ -73,11 +76,71 @@ function App() {
                     background: "#333",
                     color: "#fff",
                 },
-                duration: 5000
             });
             return
         } 
-    
+        
+        const { 
+            success: bestVideoSuccess, 
+            content: bestVideo
+        } = await getBestVideo(videoInfo)
+
+        if (bestVideoSuccess === false) {
+            setError(bestVideo);
+            toast.error(bestVideo, {
+                id: loadingToastId,
+                style: {
+                    borderRadius: "8px",
+                    background: "#333",
+                    color: "#fff",
+                },
+            });
+            return
+        } 
+
+        console.log(bestVideo)
+
+        const { 
+            success: videoBytesSuccess, 
+            content: videoBytes
+        } = await downloadStream(url, JSON.parse(bestVideo).format_id)
+
+        if (videoBytesSuccess === false) {
+            setError(videoBytes);
+            toast.error(videoBytes, {
+                id: loadingToastId,
+                style: {
+                    borderRadius: "8px",
+                    background: "#333",
+                    color: "#fff",
+                },
+            });
+            return
+        } 
+
+        console.log(videoBytes.length)
+        return
+
+        const { 
+            success: bestAudioSuccess, 
+            content: bestAudio
+        } = await getBestAudio(videoInfo)
+
+        if (bestAudioSuccess === false) {
+            setError(bestAudio);
+            toast.error(bestAudio, {
+                id: loadingToastId,
+                style: {
+                    borderRadius: "8px",
+                    background: "#333",
+                    color: "#fff",
+                },
+            });
+            return
+        } 
+
+        
+        
         try {
             const result = await invoke("submit", { 
                 url, 
@@ -89,8 +152,8 @@ function App() {
                 throw new Error("Failed to reach the platform");
             }
 
-            toast.dismiss(loadingToastId);
             toast.success("Download completed!", {
+                id: loadingToastId,
                 style: {
                     borderRadius: "8px",
                     background: "#333",
@@ -99,8 +162,8 @@ function App() {
             });
         } catch (error) {
             console.error(error)
-            toast.dismiss(loadingToastId);
             toast.error("An error occurred or platform could not be reached.", {
+                id: loadingToastId,
                 style: {
                     borderRadius: "8px",
                     background: "#333",
@@ -110,20 +173,24 @@ function App() {
         }
     }
 
-    async function getVideoInfo(): Promise<VideoValidation> {
+    async function downloadStream(url: string, formatId: string) {
+        const result: StreamValidation = await invoke("download_stream", { url, formatId });
+        return result
+    }
+
+    async function getVideoInfo(url: string): Promise<VideoValidation> {
         const result: VideoValidation = await invoke("get_video_info", { url });
+        return result
+    }
 
-        if (result.success === false) {
-            return {
-                success: false,
-                content: result.content
-            };
-        }
+    async function getBestVideo(jsonString: string): Promise<VideoValidation> {
+        const result: VideoValidation = await invoke("get_best_video", { jsonString });
+        return result
+    }
 
-        return {
-            success: true,
-            content: JSON.parse(result.content)
-        };
+    async function getBestAudio(jsonString: string): Promise<VideoValidation> {
+        const result: VideoValidation = await invoke("get_best_audio", { jsonString });
+        return result
     }
 
     return (

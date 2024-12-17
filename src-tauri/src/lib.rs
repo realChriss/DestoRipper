@@ -19,7 +19,6 @@ async fn submit(url: String, format: String, toast_id: String, window: tauri::Wi
     } else {
         return Ok(true);
     }
-
 }
 
 #[tauri::command]
@@ -34,6 +33,66 @@ async fn get_video_info(url: String) -> Value {
         },
         Err(err) => {
             eprintln!("Fehler:\n{}", err);
+            return json!({
+                "success": false, 
+                "content": err
+            });
+        }
+    }
+}
+
+#[tauri::command]
+async fn get_best_video(json_string: String) -> Value {
+    match dlp::get_best_video(json_string) {
+        Some(result) => {
+            println!("Ausgabe:\n{}", result);
+            return json!({
+                "success": true, 
+                "content": result.to_string()
+            });
+        },
+        None => {
+            eprintln!("Kein Video stream gefunden");
+            return json!({
+                "success": false, 
+                "content": "No video stream found"
+            });
+        }
+    }
+}
+
+#[tauri::command]
+async fn get_best_audio(json_string: String) -> Value {
+    match dlp::get_best_audio(json_string) {
+        Some(result) => {
+            println!("Ausgabe:\n{}", result);
+            return json!({
+                "success": true, 
+                "content": result.to_string()
+            });
+        },
+        None => {
+            eprintln!("Kein Audio stream gefunden");
+            return json!({
+                "success": false, 
+                "content": "No audio stream found"
+            });
+        }
+    }
+}
+
+#[tauri::command]
+async fn download_stream(url: String, format_id: String) -> Value {
+    match dlp::download_stream(url, format_id).await {
+        Ok(result) => {
+            println!("Bytes:\n{}", result.len());
+            return json!({
+                "success": true, 
+                "content": result
+            });
+        },
+        Err(err) => {
+            eprintln!("Fehler:{}", err);
             return json!({
                 "success": false, 
                 "content": err
@@ -164,7 +223,13 @@ async fn submit_impl(
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![submit, get_video_info])
+        .invoke_handler(tauri::generate_handler![
+            submit, 
+            get_video_info, 
+            get_best_video, 
+            get_best_audio,
+            download_stream
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
