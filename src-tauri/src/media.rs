@@ -1,8 +1,6 @@
 use crate::util;
-use tauri::window;
 use tokio::process::Command;
-use tokio::io::{ AsyncBufReadExt, BufReader};
-use tauri::{Emitter, Window};
+use tokio::io::{AsyncWriteExt,AsyncBufReadExt, BufReader};
 
 pub async fn merge(file1: String, file2: String, window: tauri::Window) -> Result<(), String> {
     let mut ffmpeg_child = Command::new(util::get_ffmpeg_path())
@@ -63,4 +61,45 @@ pub async fn merge(file1: String, file2: String, window: tauri::Window) -> Resul
 
     Ok(())
 
+}
+
+pub async fn validate_data(data: Vec<u8>) -> Result<(), String> {
+    let mut child = Command::new("python")
+        .arg(util::get_ffmpeg_path())
+        .arg("-v")
+        .arg("error") // Nur Fehler ausgeben
+        .arg("-i")
+        .arg("pipe:0") // Input von stdin
+        .arg("-f")
+        .arg("null") // Keine Ausgabe
+        .arg("-")
+        .stdin(std::process::Stdio::piped()) 
+        .stderr(std::process::Stdio::piped()) 
+        .spawn()
+        .map_err(|e| format!("Failed to spawn ffmpeg process: {}", e))?;
+    
+    // Schreibe die Daten in die Standardeingabe von FFmpeg
+    if let Some(stdin) = child.stdin.as_mut() {
+        stdin
+            .write_all(&data)
+            .await
+            .map_err(|e| format!("Failed to write to ffmpeg stdin: {}", e))?;
+    } else {
+        return Err("Failed to open stdin for ffmpeg".to_string());
+    }
+
+    let output = child
+        .wait_with_output()
+        .await
+        .map_err(|e| format!("Failed to read ffmpeg output: {}", e))?;
+
+    if output.status.success() {
+        println!("Validation Passed");
+        Ok(())
+    } else {
+        let stderr = std::str::from_utf8(&output.stderr)
+            .map(|op| op.lines().next().unwrap())
+            .unwrap_or("Unknown error");
+        Err(format!("Video validation failed: {}", stderr))
+    }
 }

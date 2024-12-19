@@ -9,7 +9,7 @@ use serde_json::{json, Value};
 
 pub mod dlp;
 pub mod util;
-pub mod ffmpeg;
+pub mod media;
 
 #[tauri::command]
 async fn submit(url: String, format: String, toast_id: String, window: tauri::Window) -> Result<bool, String> {
@@ -85,10 +85,30 @@ async fn get_best_audio(json_string: String) -> Value {
 async fn download_stream(url: String, format_id: String) -> Value {
     match dlp::download_stream(url, format_id).await {
         Ok(result) => {
-            println!("Bytes:\n{}", result.len());
+            println!("Bytes: {}", result.len());
+
             return json!({
                 "success": true, 
                 "content": result
+            });
+        },
+        Err(err) => {
+            eprintln!("Fehler:{}", err);
+            return json!({
+                "success": false, 
+                "content": err
+            });
+        }
+    }
+}
+
+#[tauri::command]
+async fn validate_data(data: Vec<u8>) -> Value {
+    match media::validate_data(data).await {
+        Ok(()) => {
+            return json!({
+                "success": true, 
+                "content": ""
             });
         },
         Err(err) => {
@@ -228,7 +248,8 @@ pub fn run() {
             get_video_info, 
             get_best_video, 
             get_best_audio,
-            download_stream
+            download_stream,
+            validate_data
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1,5 +1,6 @@
 use std::{env, path::PathBuf};
 use native_dialog::{MessageDialog, MessageType};
+use base64::{engine::general_purpose::STANDARD, Engine};
 
 pub fn get_ffmpeg_path() -> PathBuf {
     return env::current_dir().unwrap().join("bin")
@@ -30,4 +31,8 @@ pub fn show_messagebox(message: &str) {
         .set_text(message)
         .show_confirm()
         .unwrap();
+}
+
+pub fn vector_to_base64(data: Vec<u8>) -> String {
+    STANDARD.encode(data)
 }

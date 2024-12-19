@@ -66,7 +66,7 @@ pub fn get_best_video(json_string: String) -> Option<Value> {
     let best_video = formats.iter()
         .filter(|f| f.get("quality").and_then(|q| q.as_f64()).is_some()
             && f.get("format_note").and_then(|f| f.as_str()).unwrap_or("") != "Premium"
-            && f.get("video_ext").and_then(|f| f.as_str()).unwrap_or("") != "none") // Filtere nur Einträge mit float "quality"
+            && f.get("vcodec").and_then(|f| f.as_str()).unwrap_or("") != "none") // Filtere nur Einträge mit float "quality"
         .max_by(|a, b| {
             let quality_a = a.get("quality").and_then(|q| q.as_f64()).unwrap_or(0.0);
             let quality_b = b.get("quality").and_then(|q| q.as_f64()).unwrap_or(0.0);
@@ -89,7 +89,7 @@ pub fn get_best_audio(json_string: String) -> Option<Value> {
 
     let best_audio = formats.iter()
         .filter(|f| f.get("quality").and_then(|q| q.as_f64()).is_some()
-            && f.get("audio_ext").and_then(|f| f.as_str()).unwrap_or("") != "none") // Filtere nur Einträge mit float "quality"
+            && f.get("acodec").and_then(|f| f.as_str()).unwrap_or("") != "none") // Filtere nur Einträge mit float "quality"
         .max_by(|a, b| {
             let quality_a = a.get("quality").and_then(|q| q.as_f64()).unwrap_or(0.0);
             let quality_b = b.get("quality").and_then(|q| q.as_f64()).unwrap_or(0.0);
