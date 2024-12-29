@@ -25,7 +25,7 @@ async fn submit(url: String, format: String, toast_id: String, window: tauri::Wi
 async fn get_video_info(url: String) -> Value {
     match dlp::get_video_info(url).await {
         Ok(result) => {
-            println!("Ausgabe:\n{}", result);
+            println!("Found video info");
             return json!({
                 "success": true, 
                 "content": result
@@ -45,7 +45,7 @@ async fn get_video_info(url: String) -> Value {
 async fn get_best_video(json_string: String) -> Value {
     match dlp::get_best_video(json_string) {
         Some(result) => {
-            println!("Ausgabe:\n{}", result);
+            println!("Found best video");
             return json!({
                 "success": true, 
                 "content": result.to_string()
@@ -65,7 +65,7 @@ async fn get_best_video(json_string: String) -> Value {
 async fn get_best_audio(json_string: String) -> Value {
     match dlp::get_best_audio(json_string) {
         Some(result) => {
-            println!("Ausgabe:\n{}", result);
+            println!("Found best audio");
             return json!({
                 "success": true, 
                 "content": result.to_string()
@@ -82,14 +82,12 @@ async fn get_best_audio(json_string: String) -> Value {
 }
 
 #[tauri::command]
-async fn download_stream(url: String, format_id: String) -> Value {
-    match dlp::download_stream(url, format_id).await {
-        Ok(result) => {
-            println!("Bytes: {}", result.len());
-
+async fn download_stream(url: String, format_id: String, download_id: String, queue_ext: String) -> Value {
+    match dlp::download_stream(url, format_id, download_id, queue_ext).await {
+        Ok(()) => {
             return json!({
-                "success": true, 
-                "content": result
+                "success": true,
+                "content": ""
             });
         },
         Err(err) => {
@@ -103,8 +101,32 @@ async fn download_stream(url: String, format_id: String) -> Value {
 }
 
 #[tauri::command]
-async fn validate_data(data: Vec<u8>) -> Value {
-    match media::validate_data(data).await {
+async fn validate_data(download_id: String, queue_ext: String) -> Value {
+    let file_path = util::get_temp_path(Some(download_id + &queue_ext));
+
+    match media::validate_data(file_path).await {
+        Ok(()) => {
+            return json!({
+                "success": true, 
+                "content": ""
+            });
+        },
+        Err(err) => {
+            eprintln!("Fehler:{}", err);
+            return json!({
+                "success": false, 
+                "content": err
+            });
+        }
+    }
+}
+
+#[tauri::command]
+async fn merge(video: String, audio: String, download_id: String) -> Value {
+    let video_path = util::get_temp_path(Some(video));
+    let audio_path = util::get_temp_path(Some(audio));
+
+    match media::merge(video_path, audio_path, download_id).await {
         Ok(()) => {
             return json!({
                 "success": true, 
@@ -249,7 +271,8 @@ pub fn run() {
             get_best_video, 
             get_best_audio,
             download_stream,
-            validate_data
+            validate_data,
+            merge
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

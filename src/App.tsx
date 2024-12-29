@@ -4,6 +4,7 @@ import "./App.css";
 import React from "react";
 import { Toaster, toast } from "react-hot-toast";
 import { listen } from "@tauri-apps/api/event";
+import { genId } from "./lib/utils";
 
 type VideoValidation = {
     success: boolean, 
@@ -16,6 +17,8 @@ type StreamValidation =
 function App() {
     const [url, setUrl] = useState("");
     const [error, setError] = useState("");
+
+    const downloadIds: { [key: string]: string } = {};
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let newValue = e.currentTarget.value;
@@ -32,12 +35,7 @@ function App() {
     listen("progress", (event) => {
         const update = (toastId: string, message: string) => {
             toast.loading(message, {
-                id: toastId,
-                style: {
-                    borderRadius: "8px",
-                    background: "#333",
-                    color: "#fff",
-                },
+                id: toastId
             });
         }
 
@@ -57,14 +55,18 @@ function App() {
     })
 
     async function convert() {
-        const loadingToastId = toast.loading("Getting Info...", {
+        const downloadId = genId()
+
+        const toastId = toast.loading("Getting Info...", {
             style: {
                 borderRadius: "8px",
-                background: "#333",
+                background: "#444",
                 color: "#fff",
             },
         }); 
-
+        
+        downloadIds[downloadId] = downloadId 
+        
         const { 
             success: videoInfoSuccess, 
             content: videoInfo
@@ -73,12 +75,7 @@ function App() {
         if (videoInfoSuccess === false) {
             setError(videoInfo);
             toast.error(videoInfo, {
-                id: loadingToastId,
-                style: {
-                    borderRadius: "8px",
-                    background: "#333",
-                    color: "#fff",
-                },
+                id: toastId
             });
             return
         } 
@@ -91,12 +88,7 @@ function App() {
         if (bestVideoSuccess === false) {
             setError(bestVideo);
             toast.error(bestVideo, {
-                id: loadingToastId,
-                style: {
-                    borderRadius: "8px",
-                    background: "#333",
-                    color: "#fff",
-                },
+                id: toastId
             });
             return
         } 
@@ -109,23 +101,13 @@ function App() {
         if (bestAudioSuccess === false) {
             setError(bestAudio);
             toast.error(bestAudio, {
-                id: loadingToastId,
-                style: {
-                    borderRadius: "8px",
-                    background: "#333",
-                    color: "#fff",
-                },
+                id: toastId
             });
             return
         } 
 
         toast.loading("Downloading...", {
-            id: loadingToastId,
-            style: {
-                borderRadius: "8px",
-                background: "#333",
-                color: "#fff",
-            },
+            id: toastId,
         });
 
         const bestVideoId = JSON.parse(bestVideo).format_id
@@ -135,24 +117,53 @@ function App() {
             const { 
                 success: videoBytesSuccess, 
                 content: videoBytes
-            } = await downloadStream(url, bestVideoId)
+            } = await downloadStream(url, bestVideoId, downloadId)
 
             if (videoBytesSuccess === false) {
                 setError(videoBytes);
                 toast.error(videoBytes, {
-                    id: loadingToastId,
-                    style: {
-                        borderRadius: "8px",
-                        background: "#333",
-                        color: "#fff",
-                    },
+                    id: toastId
                 });
                 return
             } 
+
+            toast.loading("Validating...", {
+                id: toastId,
+            });
+
+            const { 
+                success: videoValidSuccess, 
+                content: videoValid
+            } = await validateData(downloadId)
+
+            if (videoValidSuccess === false) {
+                setError(videoValid);
+                toast.error(videoValid, {
+                    id: toastId
+                });
+                return
+            }
+
+            toast.loading("Remuxing...", {
+                id: toastId,
+            });
+
+            const { 
+                success: mergeSuccess, 
+                content: mergeContent
+            } = await merge(downloadId, downloadId, downloadId)
+
+            if (mergeSuccess === false) {
+                setError(mergeContent);
+                toast.error(mergeContent, {
+                    id: toastId
+                });
+                return
+            }
         } else {
             const [videoResponse, audioResponse] = await Promise.all([
-                downloadStream(url, JSON.parse(bestVideo).format_id),
-                downloadStream(url, JSON.parse(bestAudio).format_id)
+                downloadStream(url, JSON.parse(bestVideo).format_id, downloadId, "v"),
+                downloadStream(url, JSON.parse(bestAudio).format_id, downloadId, "a")
             ])
 
             const { 
@@ -168,12 +179,7 @@ function App() {
             if (videoBytesSuccess === false) {
                 setError(videoBytes);
                 toast.error(videoBytes, {
-                    id: loadingToastId,
-                    style: {
-                        borderRadius: "8px",
-                        background: "#333",
-                        color: "#fff",
-                    },
+                    id: toastId
                 });
                 return
             } 
@@ -181,19 +187,20 @@ function App() {
             if (audioBytesSuccess === false) {
                 setError(audioBytes);
                 toast.error(audioBytes, {
-                    id: loadingToastId,
-                    style: {
-                        borderRadius: "8px",
-                        background: "#333",
-                        color: "#fff",
-                    },
+                    id: toastId
                 });
                 return
             } 
 
+            console.log(videoBytes.length, audioBytes.length)
+
+            toast.loading("Validating...", {
+                id: toastId,
+            });
+
             const [videoValidation, audioValidation] = await Promise.all([
-                validateData(videoBytes),
-                validateData(audioBytes)
+                validateData(downloadId, "v"),
+                validateData(downloadId, "a")
             ])
 
             const { 
@@ -209,12 +216,7 @@ function App() {
             if (videoValidSuccess === false) {
                 setError(videoValid);
                 toast.error(videoValid, {
-                    id: loadingToastId,
-                    style: {
-                        borderRadius: "8px",
-                        background: "#333",
-                        color: "#fff",
-                    },
+                    id: toastId
                 });
                 return
             } 
@@ -222,34 +224,48 @@ function App() {
             if (audioValidSuccess === false) {
                 setError(audioValid);
                 toast.error(audioValid, {
-                    id: loadingToastId,
-                    style: {
-                        borderRadius: "8px",
-                        background: "#333",
-                        color: "#fff",
-                    },
+                    id: toastId
+                });
+                return
+            } 
+
+            toast.loading("Merging...", {
+                id: toastId,
+            });
+
+            const { 
+                success: mergeSuccess, 
+                content: mergeBytes
+            } = await merge(downloadId + "v", downloadId + "a", downloadId)
+    
+            if (mergeSuccess === false) {
+                setError(mergeBytes);
+                toast.error(mergeBytes, {
+                    id: toastId
                 });
                 return
             } 
         }
 
         toast.success("Download completed!", {
-            id: loadingToastId,
-            style: {
-                borderRadius: "8px",
-                background: "#333",
-                color: "#fff",
-            },
+            id: toastId
         });
     }
 
-    async function validateData(data: Uint8Array) {
-        const result: VideoValidation = await invoke("validate_data", { data });
+    async function merge(video: string, audio: string, downloadId: string) {
+        console.log("running merge")
+        const result: VideoValidation = await invoke("merge", { video, audio, downloadId });
+        console.log("merge done")
         return result
     }
 
-    async function downloadStream(url: string, formatId: string) {
-        const result: StreamValidation = await invoke("download_stream", { url, formatId });
+    async function validateData(downloadId: string, queueExt: string = "") {
+        const result: VideoValidation = await invoke("validate_data", { downloadId, queueExt });
+        return result
+    }
+
+    async function downloadStream(url: string, formatId: string, downloadId: string, queueExt: string = "") {
+        const result: StreamValidation = await invoke("download_stream", { url, formatId, downloadId, queueExt });
         return result
     }
 

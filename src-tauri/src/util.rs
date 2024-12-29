@@ -1,4 +1,5 @@
 use std::{env, path::PathBuf};
+use dirs_next::download_dir;
 use native_dialog::{MessageDialog, MessageType};
 use base64::{engine::general_purpose::STANDARD, Engine};
 
@@ -9,6 +10,24 @@ pub fn get_ffmpeg_path() -> PathBuf {
 
 pub fn get_ytdlp_path() -> PathBuf {
     return env::current_dir().unwrap().join("bin").join("yt-dlp.pyz");
+}
+
+pub fn get_temp_path(file_name: Option<String>) -> PathBuf {
+    let temp_dir = env::current_dir().unwrap().join("temp");
+    if let Some(file_name) = file_name {
+        temp_dir.join(file_name)
+    } else {
+        temp_dir
+    }
+}
+
+pub fn get_download_path(file_name: Option<String>) -> PathBuf {
+    let temp_dir = download_dir().unwrap();
+    if let Some(file_name) = file_name {
+        temp_dir.join(file_name)
+    } else {
+        temp_dir
+    }
 }
 
 pub fn ffmpeg_time_to_sec(time_str: &str) -> Result<f64, String> {

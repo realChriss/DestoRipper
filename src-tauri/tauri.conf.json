@@ -24,7 +24,8 @@
   "bundle": {
     "resources": [
         "bin/ffmpeg.exe",
-        "bin/yt-dlp.pyz"
+        "bin/yt-dlp.pyz",
+        "temp"
     ],
     "active": true,
     "targets": "all",

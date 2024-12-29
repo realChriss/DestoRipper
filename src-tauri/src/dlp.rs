@@ -1,5 +1,3 @@
-use std::{fs, time::{SystemTime, UNIX_EPOCH}};
-
 use crate::util;
 use serde_json::Value;
 use tokio::process::Command;
@@ -25,11 +23,13 @@ pub async fn get_video_info(url: String) -> Result<String, String> {
     }
 }
 
-pub async fn download_stream(url: String, format_id: String) -> Result<Vec<u8>, String> {
+pub async fn download_stream(url: String, format_id: String, download_id: String, queue_ext: String) -> Result<(), String> {
+    let output_file = util::get_temp_path(Some(download_id + &queue_ext));
+
     let output = Command::new("python")
         .arg(util::get_ytdlp_path())
         .arg("-f") .arg(format_id)
-        .arg("-o").arg("-")
+        .arg("-o").arg(output_file)
         .arg("--no-part")
         .arg("--no-playlist")
         .arg(url) 
@@ -39,11 +39,7 @@ pub async fn download_stream(url: String, format_id: String) -> Result<Vec<u8>, 
     match output {
         Ok(output) => {
             if output.status.success() {
-                let bytes = output.stdout;
-                let unix = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
-
-                fs::write(unix.to_string(), &bytes).unwrap();
-                return Ok(bytes);
+                return Ok(());
             } else {
                 return Err(String::from_utf8_lossy(&output.stderr).to_string())
             }
@@ -73,9 +69,13 @@ pub fn get_best_video(json_string: String) -> Option<Value> {
             quality_a.partial_cmp(&quality_b).unwrap_or(std::cmp::Ordering::Equal)
         });
 
-    let best_video_json = best_video.cloned().unwrap();
+    let best_video_result = best_video.cloned();
+
+    if best_video_result.is_none() {
+        return None;
+    }
     
-    return Some(best_video_json);
+    return Some(best_video_result.unwrap());
 }
 
 pub fn get_best_audio(json_string: String) -> Option<Value> {
@@ -96,7 +96,11 @@ pub fn get_best_audio(json_string: String) -> Option<Value> {
             quality_a.partial_cmp(&quality_b).unwrap_or(std::cmp::Ordering::Equal)
         });
 
-    let best_audio_json = best_audio.cloned().unwrap();
+    let best_audio_result = best_audio.cloned();
+
+    if best_audio_result.is_none() {
+        return None;
+    }
     
-    return Some(best_audio_json);
+    return Some(best_audio_result.unwrap());
 }
