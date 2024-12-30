@@ -2,14 +2,28 @@ use dirs_next::download_dir;
 use std::process::Stdio;
 use tokio::process::Command;
 use tokio::io::AsyncReadExt;
+use std::sync::Arc;
 use std::{env, fs};
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::{Emitter, Window};
 use serde_json::{json, Value};
 
+pub mod rpc;
 pub mod dlp;
 pub mod util;
 pub mod media;
+
+async fn start_discord_rpc() -> () {
+    tokio::spawn(async {
+        let discord_state = Arc::new(rpc::DiscordState::new());
+        let client_id = "1323079059785256981";
+
+        if let Err(e) = discord_state.start_rpc(client_id).await {
+            eprintln!("Failed to start RPC: {}", e);
+            return;
+        }
+    });
+}
 
 #[tauri::command]
 async fn submit(url: String, format: String, toast_id: String, window: tauri::Window) -> Result<bool, String> {
@@ -18,6 +32,26 @@ async fn submit(url: String, format: String, toast_id: String, window: tauri::Wi
         return Err(err.to_string());
     } else {
         return Ok(true);
+    }
+}
+
+#[tauri::command]
+fn unlink_temp_files(filenames: Vec<&str>) -> Value {
+    match util::unlink_temp_files(filenames) {
+        Ok(()) => {
+            println!("Unlinked temp files");
+            return json!({
+                "success": true, 
+                "content": ""
+            });
+        },
+        Err(err) => {
+            eprintln!("Fehler:\n{}", err);
+            return json!({
+                "success": false, 
+                "content": err
+            });
+        }
     }
 }
 
@@ -263,10 +297,15 @@ async fn submit_impl(
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let runtime = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
+    runtime.spawn(start_discord_rpc());
+
     tauri::Builder::default()
+        .manage(rpc::DiscordState::new())
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
             submit, 
+            unlink_temp_files,
             get_video_info, 
             get_best_video, 
             get_best_audio,

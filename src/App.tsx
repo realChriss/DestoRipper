@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 import React from "react";
@@ -54,7 +54,7 @@ function App() {
         }
     })
 
-    async function convert() {
+    async function download() {
         const downloadId = genId()
 
         const toastId = toast.loading("Getting Info...", {
@@ -64,9 +64,36 @@ function App() {
                 color: "#fff",
             },
         }); 
-        
-        downloadIds[downloadId] = downloadId 
-        
+
+        downloadIds[downloadId] = downloadId
+
+        await convert(downloadId, toastId)
+
+        delete downloadIds[downloadId]
+
+        const unlinkResult = await unlinkTempFiles([
+            downloadId, 
+            downloadId + "v",
+            downloadId + "a"
+        ])
+
+        if (unlinkResult.success === false) {
+            setError(unlinkResult.content);
+            toast.error(unlinkResult.content, {
+                style: {
+                    borderRadius: "8px",
+                    background: "#444",
+                    color: "#fff",
+                },
+            });
+        } 
+
+        toast.success("Download completed!", {
+            id: toastId
+        });
+    }
+
+    async function convert(downloadId: string, toastId: string) {
         const { 
             success: videoInfoSuccess, 
             content: videoInfo
@@ -253,9 +280,12 @@ function App() {
     }
 
     async function merge(video: string, audio: string, downloadId: string) {
-        console.log("running merge")
         const result: VideoValidation = await invoke("merge", { video, audio, downloadId });
-        console.log("merge done")
+        return result
+    }
+
+    async function unlinkTempFiles(filenames: string[]) {
+        const result: VideoValidation = await invoke("unlink_temp_files", { filenames });
         return result
     }
 
@@ -297,7 +327,7 @@ function App() {
                     className="row"
                     onSubmit={(e) => {
                         e.preventDefault();
-                        convert();
+                        download();
                     }}
                 >
                     <div className="input-container">

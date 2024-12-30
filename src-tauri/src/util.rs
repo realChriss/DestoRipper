@@ -55,3 +55,14 @@ pub fn show_messagebox(message: &str) {
 pub fn vector_to_base64(data: Vec<u8>) -> String {
     STANDARD.encode(data)
 }
+
+pub fn unlink_temp_files(filenames: Vec<&str>) -> Result<(), String> {
+    for filename in filenames {
+        let path = get_temp_path(Some(filename.to_string()));
+        if path.exists() {
+            std::fs::remove_file(path).map_err(|e| format!("Fehler beim Löschen der Datei {}: {}", filename, e))?;
+        }
+    }
+    
+    Ok(())
+}

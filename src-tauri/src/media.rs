@@ -3,6 +3,34 @@ use std::path::PathBuf;
 use crate::util;
 use tokio::process::Command;
 
+pub async fn remux(video: PathBuf, download_id: String) -> Result<(), String> {
+    let output_file = util::get_download_path(Some(download_id + ".mp4"));
+    
+    let ffmpeg_child = Command::new(util::get_ffmpeg_path())
+        .arg("-i").arg(video)
+        .arg("-c:v").arg("libx264")
+        .arg("-c:a").arg("aac")
+        .arg("-threads").arg("0")
+        .arg("-y") 
+        .arg(output_file) 
+        .output()
+        .await;
+
+    match ffmpeg_child {
+        Ok(output) => {
+            if output.status.success() {
+                println!("Passing remux"); 
+                return Ok(());
+            } else {
+                return Err(String::from_utf8_lossy(&output.stderr).to_string())
+            }
+        }
+        Err(e) => {
+            return Err(format!("Fehler beim Ausführen des Befehls: {}", e));
+        },
+    }
+}
+
 pub async fn merge(video: PathBuf, audio: PathBuf, download_id: String) -> Result<(), String> {
     let output_file = util::get_download_path(Some(download_id + ".mp4"));
     
