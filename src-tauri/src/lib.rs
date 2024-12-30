@@ -200,7 +200,7 @@ async fn submit_impl(
     window.emit("progress", format!("{} {}", toast_id, "downloading"))?;
 
     // Video-Stream extrahieren
-    let mut video_child = Command::new("python3")
+    let mut video_child = Command::new(util::get_python_name())
         .arg(&ytdlp_path)
         .arg("--ffmpeg-location")
         .arg(&ffmpeg_path)
@@ -215,7 +215,7 @@ async fn submit_impl(
         //.creation_flags(0x08000000)
         .spawn()?;
 
-    let mut audio_child = Command::new("python3")
+    let mut audio_child = Command::new(util::get_python_name())
         .arg(&ytdlp_path)
         .arg("--ffmpeg-location")
         .arg(&ffmpeg_path)

@@ -67,7 +67,7 @@ function App() {
 
         downloadIds[downloadId] = downloadId
 
-        await convert(downloadId, toastId)
+        const convertResult = await convert(downloadId, toastId)
 
         delete downloadIds[downloadId]
 
@@ -88,9 +88,11 @@ function App() {
             });
         } 
 
-        toast.success("Download completed!", {
-            id: toastId
-        });
+        if (convertResult !== undefined) {  
+            toast.success("Download completed!", {
+                id: toastId
+            });
+        }
     }
 
     async function convert(downloadId: string, toastId: string) {
@@ -273,10 +275,8 @@ function App() {
                 return
             } 
         }
-
-        toast.success("Download completed!", {
-            id: toastId
-        });
+        
+        return true
     }
 
     async function merge(video: string, audio: string, downloadId: string) {

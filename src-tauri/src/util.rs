@@ -66,3 +66,11 @@ pub fn unlink_temp_files(filenames: Vec<&str>) -> Result<(), String> {
     
     Ok(())
 }
+
+pub fn get_python_name() -> String {
+    if cfg!(windows) {
+        "python".to_string()
+    } else {
+        "python3".to_string()
+    }
+}
