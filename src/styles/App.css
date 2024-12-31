@@ -28,20 +28,6 @@
   min-height: 100vh;
 }
 
-.header {
-  background-color: #333;
-  color: #fff;
-  padding: 1rem;
-  text-align: center;
-}
-
-.footer {
-  background-color: #333;
-  color: #fff;
-  padding: 1rem;
-  text-align: center;
-  margin-top: auto;
-}
 
 .container {
   margin: 0;
@@ -155,55 +141,3 @@ button:active {
   margin: 20px;
 }
 
-.platformsIMG {
-  flex-direction: row;
-  display: flex;
-  justify-content: center;
-  margin-left: 30px;
-  margin-right: 30px;
-}
-
-.ytIMG {
-  width: 70px;
-  height: 70px;
-  margin: 20px;
-  fill: red;
-  background-color: white;
-  border-radius: 12px;
-  transition: all 0.5s ease;
-}
-
-.ytIMG:hover {
-  width: 80px;
-  height: 80px;
-  transition: all 0.5s ease;
-}
-
-.ttIMG {
-  width: 70px;
-  height: 70px;
-  margin: 20px;
-  border-radius: 20px;
-  transition: all 0.5s ease;
-}
-
-.ttIMG:hover {
-  width: 80px;
-  height: 80px;
-  transition: all 0.5s ease;
-}
-
-.igIMG {
-  width: 70px;
-  height: 70px;
-  margin: 20px;
-  background-color: white;
-  border-radius: 25px;
-  transition: all 0.5s ease;
-}
-
-.igIMG:hover {
-  width: 80px;
-  height: 80px;
-  transition: all 0.5s ease;
-}

@@ -1,0 +1,31 @@
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: left;
+    text-align: left;
+}
+
+.sidebar-content {
+    display: flex;
+    flex-direction: column;
+    margin-top: 50px;
+    gap: 10px;
+    align-items: left;
+    text-align: left;
+}
+
+.sidebar-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: left;
+    text-align: left;
+}
+
+.sidebar-button {
+    gap: 10px;
+    justify-content: left;
+    align-items: center;
+    text-align: center;
+}
