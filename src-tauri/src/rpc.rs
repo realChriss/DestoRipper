@@ -50,8 +50,7 @@ impl DiscordState {
         // Damit der Client weiterhin läuft, kannst du ihn im Hintergrund laufen lassen.
         
         loop {
-            // empty `loop {}` wastes CPU cycles
-            tokio::time::sleep(Duration::from_secs(10)).await;
+            tokio::time::sleep(Duration::from_secs(1000)).await;
         }
     }
 }
