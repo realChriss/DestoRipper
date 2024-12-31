@@ -5,7 +5,8 @@ use tokio::process::Command;
 
 pub async fn remux(video: PathBuf, download_id: String) -> Result<(), String> {
     let output_file = util::get_download_path(Some(download_id + ".mp4"));
-    
+    println!("Remuxing to: {}", output_file.to_string_lossy());
+
     let ffmpeg_child = Command::new(util::get_ffmpeg_path())
         .arg("-i").arg(video)
         .arg("-c:v").arg("libx264")
@@ -33,7 +34,8 @@ pub async fn remux(video: PathBuf, download_id: String) -> Result<(), String> {
 
 pub async fn merge(video: PathBuf, audio: PathBuf, download_id: String) -> Result<(), String> {
     let output_file = util::get_download_path(Some(download_id + ".mp4"));
-    
+    println!("Merging to: {}", output_file.to_string_lossy());
+
     let ffmpeg_child = Command::new(util::get_ffmpeg_path())
         .arg("-i").arg(video)
         .arg("-i").arg(audio)

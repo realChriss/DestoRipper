@@ -25,6 +25,7 @@ pub async fn get_video_info(url: String) -> Result<String, String> {
 
 pub async fn download_stream(url: String, format_id: String, download_id: String, queue_ext: String) -> Result<(), String> {
     let output_file = util::get_temp_path(Some(download_id + &queue_ext));
+    println!("Downloading to: {}", output_file.to_string_lossy());
 
     let output = Command::new(util::get_python_name())
         .arg(util::get_ytdlp_path())
