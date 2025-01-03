@@ -1,31 +1,63 @@
 .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 130px; /* Reduced width from 200px */
+    background-color: #333; /* Adjust the background color as needed */
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    align-items: left;
-    text-align: left;
+    align-items: center;
+    justify-content: center;
+    transition: width 0.3s ease;
 }
 
+.sidebar:hover {
+    width: 170px; 
+}
+
+
 .sidebar-content {
+    width: 100%;
     display: flex;
     flex-direction: column;
-    margin-top: 50px;
-    gap: 10px;
-    align-items: left;
-    text-align: left;
+    align-items: center;
 }
 
 .sidebar-buttons {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    align-items: left;
-    text-align: left;
+    gap: 15px;
 }
 
 .sidebar-button {
-    gap: 10px;
-    justify-content: left;
+    font-size:13px;
+    width: 80px;
+    height: 80px; 
+    margin: 10px;
+    padding: 15px 0; 
+    background-color: #555; 
+    color: white;
+    border: none;
+    border-radius: 8px; 
+    cursor: pointer;
+    display: flex;
     align-items: center;
-    text-align: center;
+    justify-content: center;
+    transition: background-color 0.3s ease, width 0.3s ease, font-size 0.3s ease;
+}
+
+.sidebar:hover .sidebar-button {
+    font-size:15px;
+    width: 100px; /* Increase width */
+    transition: background-color 0.3s ease, width 0.3s ease, font-size 0.3s ease;
+}
+
+
+.sidebar-button:hover {
+    background-color: #777; /* Hover background color */
+}
+
+.sidebar-button.active {
+    background-color: #999; /* Active button background color */
 }

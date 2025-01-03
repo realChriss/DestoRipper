@@ -18,21 +18,15 @@ const Sidebar = () => {
                             className={`sidebar-button ${buttons === 1 ? 'active' : ''}`}
                             onClick={() => setButtons(1)}
                         >
-                            Button 1
+                            Settings
                         </button>
+                    </div>
                     </div>
                         <button
                             className="sidebar-button"
                             onClick={() => setButtons(2)}
                         >
-                            Button 2
-                        </button>
-                    </div>
-                        <button
-                            className="sidebar-button"
-                            onClick={() => setButtons(3)}
-                        >
-                            Button 3
+                            Info
                         </button>
                     </div>
         </>
