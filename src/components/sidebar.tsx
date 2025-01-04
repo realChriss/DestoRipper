@@ -4,10 +4,7 @@ import "../styles/sidebar.css";
 
 
 const Sidebar = () => {
-
     const [buttons, setButtons] = React.useState(0);
-
-
 
     return (
         <>
@@ -23,7 +20,7 @@ const Sidebar = () => {
                     </div>
                     </div>
                         <button
-                            className="sidebar-button"
+                            className={`sidebar-button ${buttons === 2 ? 'active' : ''}`}
                             onClick={() => setButtons(2)}
                         >
                             Info
