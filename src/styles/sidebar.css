@@ -1,63 +1,65 @@
 .sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 130px;
-    border-right: #767676;
-    background-color: #181818;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    transition: width 0.3s ease;
-    z-index: 1000;
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 130px;
+  border-right: #767676;
+  background-color: #181818;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  transition: width 0.3s ease;
+  z-index: 1000;
 }
 
 .sidebar-content {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
 }
 
 .sidebar-buttons {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar-button {
-    font-size:13px;
-    width: 129px;
-    height: 90px; 
-    margin: 10px;
-    padding: 15px 0; 
-    color: white;
-    background-color: #181818;
-    border: none;
-    border-radius: 6px; 
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.3s ease, width 0.3s ease, font-size 0.3s ease;
+  font-size: 13px;
+  width: 129px;
+  height: 90px;
+  margin: 10px;
+  padding: 15px 0;
+  color: white;
+  background-color: #181818;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color 0.3s ease,
+    width 0.3s ease,
+    font-size 0.3s ease;
 }
 
 .sidebar-button:hover {
-    background-color: #141414;
-    
+  background-color: #141414;
 }
 
 .sidebar-button.active {
-    background-color: rgba(50, 50, 50, 0.621);
+  background-color: rgba(50, 50, 50, 0.621);
 }
 
 .sidebar-buttons-misceleaneous {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
 }

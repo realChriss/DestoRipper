@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "pretty": "prettier --write .",
+    "pretty:check": "prettier --check .",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri"
@@ -12,9 +14,11 @@
   "dependencies": {
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-shell": "^2",
+    "prettier": "^3.4.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-hot-toast": "^2.4.1"
+    "react-hot-toast": "^2.4.1",
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
