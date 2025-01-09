@@ -61,14 +61,9 @@ pub fn get_best_video(json_string: String) -> Option<Value> {
     let formats = json.get("formats")?.as_array()?;
 
     let best_video = formats.iter()
-        .filter(|f| f.get("quality").and_then(|q| q.as_f64()).is_some()
-            && f.get("format_note").and_then(|f| f.as_str()).unwrap_or("") != "Premium"
-            && f.get("vcodec").and_then(|f| f.as_str()).unwrap_or("") != "none") // Filtere nur Einträge mit float "quality"
-        .max_by(|a, b| {
-            let quality_a = a.get("quality").and_then(|q| q.as_f64()).unwrap_or(0.0);
-            let quality_b = b.get("quality").and_then(|q| q.as_f64()).unwrap_or(0.0);
-            quality_a.partial_cmp(&quality_b).unwrap_or(std::cmp::Ordering::Equal)
-        });
+        .filter(|f| f.get("format_note").and_then(|f| f.as_str()).unwrap_or("") != "Premium"
+            && f.get("vcodec").and_then(|f| f.as_str()).unwrap_or("") != "none") // Filtere nur nach format_note und vcodec
+        .last(); // Nimm das letzte Element
 
     let best_video_result = best_video.cloned();
 
@@ -89,13 +84,8 @@ pub fn get_best_audio(json_string: String) -> Option<Value> {
     let formats = json.get("formats")?.as_array()?;
 
     let best_audio = formats.iter()
-        .filter(|f| f.get("quality").and_then(|q| q.as_f64()).is_some()
-            && f.get("acodec").and_then(|f| f.as_str()).unwrap_or("") != "none") // Filtere nur Einträge mit float "quality"
-        .max_by(|a, b| {
-            let quality_a = a.get("quality").and_then(|q| q.as_f64()).unwrap_or(0.0);
-            let quality_b = b.get("quality").and_then(|q| q.as_f64()).unwrap_or(0.0);
-            quality_a.partial_cmp(&quality_b).unwrap_or(std::cmp::Ordering::Equal)
-        });
+        .filter(|f| f.get("acodec").and_then(|f| f.as_str()).unwrap_or("") != "none") // Filtere nur Einträge mit float "quality"
+        .last();
 
     let best_audio_result = best_audio.cloned();
 
