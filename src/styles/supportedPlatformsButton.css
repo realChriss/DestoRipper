@@ -1,0 +1,146 @@
+.supported-platforms-button {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.platform-button {
+  background-color: transparent;
+  backdrop-filter: blur(10px);
+  color: #858585;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: color 0.3s ease;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.platform-popup {
+  position: absolute;
+  text-align: left;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) scale(0.95);
+  margin-top: 5px;
+  padding: 10px;
+  background-color: #534e4e34;
+  backdrop-filter: blur(10px);
+  color: #858585;
+  border-radius: 8px;
+  opacity: 0;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+  z-index: 1000;
+  transform-origin: top center;
+}
+
+.platforms-disclaimer {
+  margin-top: 15px;
+}
+
+.platform-svg {
+  width: 16px;
+  height: 16px;
+  fill: #858585;
+  border: 1px solid #858585;
+  padding: 0.5px;
+  border-radius: 50%;
+  background-color: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.platform-svg.rotate {
+  transform: rotate(45deg);
+  padding: 0.7px;
+  transition: all 0.3s ease;
+}
+
+@keyframes fadeInAnimation {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+@keyframes fadeOutAnimation {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.95);
+  }
+}
+
+.platform-popup li {
+  border-radius: 4px;
+  background-color: #272525;
+  padding: 4px 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 0.8em;
+  box-sizing: border-box;
+  display: inline-block;
+  white-space: nowrap;
+  width: auto;
+  margin: 0; /* Remove margin to stick elements together */
+}
+
+.platform-popup.fade-in {
+  animation: fadeInAnimation 0.3s forwards;
+}
+
+.platform-popup.fade-out {
+  animation: fadeOutAnimation 0.3s forwards;
+}
+
+.platform-popup::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent #1e1e1e transparent;
+}
+
+.platform-popup ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  padding: 0;
+  margin: 0 auto;
+  list-style: none;
+  max-width: 400px;
+  align-items: center;
+  justify-items: center;
+  gap: 0; /* Remove gap for sticking elements together */
+}
+
+@media (max-width: 768px) {
+  .platform-popup ul {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .platform-popup ul {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,63 +1,65 @@
 .sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 130px; /* Reduced width from 200px */
-    background-color: #333; /* Adjust the background color as needed */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: width 0.3s ease;
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 130px;
+  border-right: #767676;
+  background-color: #181818;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  transition: width 0.3s ease;
+  z-index: 1000;
 }
-
-.sidebar:hover {
-    width: 170px; 
-}
-
 
 .sidebar-content {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
 }
 
 .sidebar-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar-button {
-    font-size:13px;
-    width: 80px;
-    height: 80px; 
-    margin: 10px;
-    padding: 15px 0; 
-    background-color: #555; 
-    color: white;
-    border: none;
-    border-radius: 8px; 
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.3s ease, width 0.3s ease, font-size 0.3s ease;
+  font-size: 13px;
+  width: 129px;
+  height: 90px;
+  margin: 10px;
+  padding: 15px 0;
+  color: white;
+  background-color: #181818;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color 0.3s ease,
+    width 0.3s ease,
+    font-size 0.3s ease;
 }
-
-.sidebar:hover .sidebar-button {
-    font-size:15px;
-    width: 100px; /* Increase width */
-    transition: background-color 0.3s ease, width 0.3s ease, font-size 0.3s ease;
-}
-
 
 .sidebar-button:hover {
-    background-color: #777; /* Hover background color */
+  background-color: #141414;
 }
 
 .sidebar-button.active {
-    background-color: #999; /* Active button background color */
+  background-color: rgba(50, 50, 50, 0.621);
+}
+
+.sidebar-buttons-misceleaneous {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
 }

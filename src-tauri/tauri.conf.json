@@ -22,12 +22,7 @@
     }
   },
   "bundle": {
-    "resources": [
-        "bin/ffmpeg.exe",
-        "bin/ffmpeg",
-        "bin/yt-dlp.pyz",
-        "temp"
-    ],
+    "resources": ["bin/ffmpeg.exe", "bin/ffmpeg", "bin/yt-dlp.pyz", "temp"],
     "active": true,
     "targets": "all",
     "icon": [
