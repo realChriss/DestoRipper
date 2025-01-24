@@ -32,14 +32,16 @@ pub async fn remux(video: PathBuf, download_id: String) -> Result<(), String> {
     }
 }
 
-pub async fn merge(video: PathBuf, audio: PathBuf, download_id: String) -> Result<(), String> {
+pub async fn merge(video: PathBuf, audio: PathBuf, download_id: String, copy_vcodec: bool) -> Result<(), String> {
     let output_file = util::get_download_path(Some(download_id + ".mp4"));
-    println!("Merging to: {}", output_file.to_string_lossy());
+    let vcodec = if copy_vcodec { "copy" } else { "libx264" };
+    
+    println!("Merging with {} to: {}", vcodec, output_file.to_string_lossy());
 
     let ffmpeg_child = Command::new(util::get_ffmpeg_path())
         .arg("-i").arg(video)
         .arg("-i").arg(audio)
-        .arg("-c:v").arg("libx264")
+        .arg("-c:v").arg(vcodec)
         .arg("-c:a").arg("aac")
         .arg("-map").arg("0:v")
         .arg("-map").arg("1:a")

@@ -63,7 +63,7 @@ pub fn get_best_video(json_string: String) -> Option<Value> {
     let best_video = formats.iter()
         .filter(|f| f.get("format_note").and_then(|f| f.as_str()).unwrap_or("") != "Premium"
             && f.get("vcodec").and_then(|f| f.as_str()).unwrap_or("") != "none") // Filtere nur nach format_note und vcodec
-        .last(); // Nimm das letzte Element
+        .last();
 
     let best_video_result = best_video.cloned();
 

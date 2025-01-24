@@ -137,6 +137,7 @@ function DownloadComp() {
     });
 
     const bestVideoId = JSON.parse(bestVideo).format_id;
+    const bestVideoVcodec = JSON.parse(bestVideo).vcodec;
     const bestAudioId = JSON.parse(bestAudio).format_id;
 
     if (bestVideoId === bestAudioId) {
@@ -174,6 +175,7 @@ function DownloadComp() {
         downloadId,
         downloadId,
         downloadId,
+        bestVideoVcodec === "h264",
       );
 
       if (mergeSuccess === false) {
@@ -250,6 +252,7 @@ function DownloadComp() {
         downloadId + "v",
         downloadId + "a",
         downloadId,
+        bestVideoVcodec === "h264",
       );
 
       if (mergeSuccess === false) {
@@ -264,11 +267,12 @@ function DownloadComp() {
     return true;
   }
 
-  async function merge(video: string, audio: string, downloadId: string) {
+  async function merge(video: string, audio: string, downloadId: string, copyVcodec: boolean) {
     const result: VideoValidation = await invoke("merge", {
       video,
       audio,
       downloadId,
+      copyVcodec
     });
     return result;
   }

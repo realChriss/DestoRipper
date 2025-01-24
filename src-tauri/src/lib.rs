@@ -156,11 +156,11 @@ async fn validate_data(download_id: String, queue_ext: String) -> Value {
 }
 
 #[tauri::command]
-async fn merge(video: String, audio: String, download_id: String) -> Value {
+async fn merge(video: String, audio: String, download_id: String, copy_vcodec: bool) -> Value {
     let video_path = util::get_temp_path(Some(video));
     let audio_path = util::get_temp_path(Some(audio));
 
-    match media::merge(video_path, audio_path, download_id).await {
+    match media::merge(video_path, audio_path, download_id, copy_vcodec).await {
         Ok(()) => {
             return json!({
                 "success": true, 
